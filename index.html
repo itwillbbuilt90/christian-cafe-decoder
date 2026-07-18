@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The dating archetype decoder</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --cream: #FAF6EE;
+    --sage: #4A5D4E;
+    --sage-dark: #38473B;
+    --terracotta: #C77B5F;
+    --terracotta-dark: #A85F45;
+    --ink: #232420;
+    --ink-soft: #5C5A52;
+    --gold: #E8D9B8;
+    --gold-line: #D8C69A;
+    --card-bg: #FFFDF8;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+    min-height: 100vh;
+  }
+  .eyebrow {
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sage);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .headline {
+    font-family: Georgia, "Times New Roman", serif;
+    text-align: center;
+    font-size: 26px;
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+  .subline {
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 32px;
+  }
+
+  /* progress */
+  .progress-row { display: flex; gap: 6px; margin-bottom: 28px; }
+  .progress-seg { height: 4px; flex: 1; border-radius: 3px; background: var(--gold-line); overflow: hidden; }
+  .progress-seg.done { background: var(--sage); }
+
+  .q-label { font-size: 12px; color: var(--ink-soft); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+  .q-text {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 21px;
+    line-height: 1.4;
+    color: var(--ink);
+    margin: 0 0 24px;
+  }
+  .opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--card-bg);
+    border: 1px solid var(--gold-line);
+    border-radius: 10px;
+    padding: 15px 18px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  }
+  .opt:hover { border-color: var(--sage); background: #FFFFFF; }
+  .opt:active { transform: scale(0.99); }
+
+  /* intro screen */
+  #introScreen { text-align: center; }
+  .start-btn {
+    display: inline-block;
+    background: var(--terracotta);
+    color: #FFFDF8;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 8px;
+  }
+  .start-btn:hover { background: var(--terracotta-dark); }
+  .fine-print { font-size: 12px; color: var(--ink-soft); margin-top: 14px; }
+
+  /* result card */
+  #resultScreen { display: none; }
+  .reveal-wrap { text-align: center; }
+  .reveal-eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sage); font-weight: 600; margin-bottom: 18px; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--gold-line);
+    border-radius: 16px;
+    padding: 36px 28px;
+    box-shadow: 0 1px 2px rgba(35,36,32,0.04), 0 8px 24px rgba(35,36,32,0.06);
+    opacity: 0;
+    transform: translateY(8px);
+    animation: cardIn 0.6s ease forwards;
+  }
+  @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+  .card-name {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    color: var(--sage-dark);
+    margin: 0 0 4px;
+  }
+  .card-sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 20px; letter-spacing: 0.02em; }
+  .card-divider { width: 40px; height: 2px; background: var(--gold-line); margin: 0 auto 20px; }
+  .card-body {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--ink);
+    text-align: left;
+    margin: 0;
+  }
+  .cta-wrap { margin-top: 28px; }
+  .cta-btn {
+    display: block;
+    width: 100%;
+    background: var(--terracotta);
+    color: #FFFDF8;
+    border: none;
+    padding: 17px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    text-align: center;
+  }
+  .cta-btn:hover { background: var(--terracotta-dark); }
+  .cta-fine { font-size: 12px; color: var(--ink-soft); margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="introScreen">
+    <div class="eyebrow">60-second decoder</div>
+    <h1 class="headline">Which dating archetype are you?</h1>
+    <p class="subline">Five quick questions. One honest answer.</p>
+    <div style="margin: 32px 0;">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="margin:0 auto;display:block;">
+        <rect x="16" y="8" width="32" height="48" rx="4" stroke="#C77B5F" stroke-width="2" fill="#FFFDF8"/>
+        <line x1="24" y1="20" x2="40" y2="20" stroke="#D8C69A" stroke-width="2"/>
+        <line x1="24" y1="28" x2="40" y2="28" stroke="#D8C69A" stroke-width="2"/>
+        <circle cx="32" cy="42" r="6" stroke="#4A5D4E" stroke-width="2" fill="none"/>
+      </svg>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">Begin the decoder</button>
+    <p class="fine-print">Takes less time than scrolling one more feed.</p>
+  </div>
+
+  <div id="quizScreen" style="display:none;">
+    <div class="progress-row" id="progressRow"></div>
+    <div class="q-label">Question <span id="qNum">1</span> of 5</div>
+    <h2 class="q-text" id="qText"></h2>
+    <div id="optsWrap"></div>
+  </div>
+
+  <div id="resultScreen">
+    <div class="reveal-wrap">
+      <div class="reveal-eyebrow">Your archetype</div>
+      <div class="card">
+        <h2 class="card-name" id="archName"></h2>
+        <p class="card-sub" id="archSub"></p>
+        <div class="card-divider"></div>
+        <p class="card-body" id="archBody"></p>
+      </div>
+      <div class="cta-wrap">
+        <a class="cta-btn" id="ctaBtn" href="#">Meet other <span id="ctaArch"></span>s now</a>
+        <p class="cta-fine">Christian Cafe &middot; free to browse</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const MAXBOUNTY_LINK = "https://afflat3c2.com/trk/lnk/9C2DBCE7-F087-47EE-8B40-D1E691D2D46E/?o=9570&c=918277&a=800135&k=B21B62A9DC2A2E202100B3606F6C9879&l=9133";
+
+const questions = [
+  {
+    q: "When you think about dating again, what's the first feeling?",
+    opts: [
+      { text: "Hopeful, honestly", scores: { keeper: 1, catalyst: 1 } },
+      { text: "Cautious but curious", scores: { seeker: 2 } },
+      { text: "Tired of the small talk", scores: { keeper: 2 } },
+      { text: "Not sure I trust my picker yet", scores: { seeker: 1 } }
+    ]
+  },
+  {
+    q: "What's missing most from past relationships?",
+    opts: [
+      { text: "Shared faith as a real foundation", scores: { keeper: 2 } },
+      { text: "Real emotional depth", scores: { seeker: 2 } },
+      { text: "Someone who was actually ready", scores: { keeper: 1, seeker: 1 } },
+      { text: "A sense of growing together", scores: { catalyst: 2 } }
+    ]
+  },
+  {
+    q: "How do you handle a disagreement about values?",
+    opts: [
+      { text: "I hold my ground calmly", scores: { keeper: 2 } },
+      { text: "I want to understand them first", scores: { catalyst: 2 } },
+      { text: "I need to feel heard before anything else", scores: { seeker: 2 } },
+      { text: "Depends entirely on who I'm with", scores: { seeker: 1 } }
+    ]
+  },
+  {
+    q: "What does 'ready' actually mean to you?",
+    opts: [
+      { text: "I know exactly what I want now", scores: { keeper: 2 } },
+      { text: "I've done my healing work", scores: { seeker: 2 } },
+      { text: "I'm ready to build something, not just date", scores: { catalyst: 2 } },
+      { text: "Honestly, still figuring it out", scores: { seeker: 1 } }
+    ]
+  },
+  {
+    q: "If the right person showed up this month, how would you know?",
+    opts: [
+      { text: "They'd share my faith without me explaining it", scores: { keeper: 2 } },
+      { text: "It would just feel steady, not exciting", scores: { seeker: 1, keeper: 1 } },
+      { text: "We'd both be building toward something", scores: { catalyst: 2 } },
+      { text: "I'd stop overthinking it completely", scores: { catalyst: 1, seeker: 1 } }
+    ]
+  }
+];
+
+const archetypes = {
+  seeker: {
+    name: "The Steady Seeker",
+    sub: "Patience as a practice, not a wait",
+    body: "You don't rush toward people just to fill the silence. You've done enough of the inner work to know what alignment actually feels like, and you're not willing to trade that for someone who's simply available. That's not indecision. That's discernment. What you're looking for isn't perfect, it's steady, and steady is rarer than most people think."
+  },
+  keeper: {
+    name: "The Intentional Keeper",
+    sub: "Boundaries as protection, not punishment",
+    body: "You don't date just to date. You're protecting your peace and waiting for someone who treats faith as a foundation, not a talking point on a first date. Because you already know what you bring to the table, most modern dating apps feel exhausting to you, and for good reason. You need a space where intentions are already filtered before the first conversation starts."
+  },
+  catalyst: {
+    name: "The Faith-First Catalyst",
+    sub: "Growth as the point of the relationship",
+    body: "You're not looking for someone to complete you. You're looking for someone to build alongside, whose faith actively shapes how they show up in a relationship, not just how they show up on Sunday. You bring momentum wherever you go, and what you need is someone who can meet that energy instead of quietly draining it."
+  }
+};
+
+let current = 0;
+const scores = { seeker: 0, keeper: 0, catalyst: 0 };
+
+function startQuiz() {
+  document.getElementById('introScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  buildProgress();
+  renderQuestion();
+}
+
+function buildProgress() {
+  const row = document.getElementById('progressRow');
+  row.innerHTML = '';
+  for (let i = 0; i < questions.length; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'progress-seg';
+    seg.id = 'seg' + i;
+    row.appendChild(seg);
+  }
+}
+
+function renderQuestion() {
+  document.getElementById('qNum').textContent = current + 1;
+  document.getElementById('qText').textContent = questions[current].q;
+  for (let i = 0; i < questions.length; i++) {
+    document.getElementById('seg' + i).className = 'progress-seg' + (i <= current ? ' done' : '');
+  }
+  const wrap = document.getElementById('optsWrap');
+  wrap.innerHTML = '';
+  questions[current].opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = opt.text;
+    btn.onclick = () => selectOption(opt);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectOption(opt) {
+  Object.keys(opt.scores).forEach(k => { scores[k] += opt.scores[k]; });
+  current++;
+  if (current >= questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  let winner = 'seeker';
+  let top = -1;
+  Object.keys(scores).forEach(k => {
+    if (scores[k] > top) { top = scores[k]; winner = k; }
+  });
+  const arch = archetypes[winner];
+  document.getElementById('archName').textContent = arch.name;
+  document.getElementById('archSub').textContent = arch.sub;
+  document.getElementById('archBody').textContent = arch.body;
+  document.getElementById('ctaArch').textContent = arch.name.replace('The ', '');
+  document.getElementById('ctaBtn').href = MAXBOUNTY_LINK;
+
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
